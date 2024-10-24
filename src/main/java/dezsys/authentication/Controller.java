@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,9 +36,12 @@ public class Controller {
     @Autowired
     MyUserRepository repo;
     public Controller() {
+    }
+    @PostConstruct
+    public void init() {
         File usersJsonFile = new File(initialUsersJson);
         if (!usersJsonFile.exists()) {
-            throw new RuntimeException("initialUsers.json not found");
+            throw new RuntimeException("InitialUsers.json not found");
         }
 
         try {
@@ -50,6 +54,8 @@ public class Controller {
             e.printStackTrace();
         }
     }
+
+
     @PostMapping("/admin/register")
     public String register(@RequestBody RegisterRequest req) {
         String name = req.name();
