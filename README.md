@@ -21,3 +21,15 @@ Spring Security
 Highly customizable authentication and access-control framework for Spring
 
 applications.
+
+## Usage
+
+To deploy: 
+
+```bash
+make deploy
+
+# alternatively
+gradle build
+docker compose up --build
+```
