@@ -1,19 +1,6 @@
 version: '3.8'
 
 services:
-  postgresdb:
-    image: postgres:latest
-    container_name: postgresdb
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - app-network
   springbootapp:
     build: .
     container_name: springbootapp
@@ -25,13 +12,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "8080:8080"
-    depends_on:
-      - postgresdb
     networks:
       - app-network
-
-volumes:
-  postgres_data:
 
 networks:
   app-network:
