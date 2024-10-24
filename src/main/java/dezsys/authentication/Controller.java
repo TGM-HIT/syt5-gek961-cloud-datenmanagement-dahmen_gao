@@ -10,8 +10,10 @@ import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,36 +28,42 @@ public class Controller {
     // get key for this running instance
     private SecretKey key = Jwts.SIG.HS256.key().build();
 
-    @Autowired
-    UserRepository repo;
 
-    @RequestMapping("/user")
-    public String createUser() {
-        User u = new User(1L, "simon", "email", List.of(Role.ADMIN), "password");
-        repo.save(u);
-        return "done";
-    }
+    @PostMapping("/admin/register")
+    public String register(@RequestBody RegisterRequest req) {
+        String name = req.name();
+        String email = req.email();
+        var roles = req.roles();
+        String password = req.password();
 
-    @RequestMapping("/admin/register")
-    public String register(String name, String email, @RequestParam(value = "roles") ArrayList<Role> roles, String password) {
         System.out.println(String.format("name: %s, email: %s, roles: %s", name, email,
                 roles.stream().map(Role::name).collect(Collectors.joining(", "))));
+
+        // TODO check if roles include ADMIn
+
+        // TODO create user
+
         return createJwt(email, password);
     }
 
     @PostMapping("/signin")
     public String signin(@RequestBody LoginRequest req) {
         System.out.println(req.toString());
-        return "signin";
+
+        String email = req.email();
+        String password = req.password();
+
+        // TODO check login creds
+
+        return createJwt(email, password);
     }
 
-    @RequestMapping("/verify")
-    public String verify(String token) {
+    @GetMapping("/verify")
+    public String verify(@RequestHeader("Authorization") String token) {
         System.out.println("token: " + token);
         parseJwt(token);
         return "verify";
     }
-
 
     public String createJwt(String email, String password) {
 
@@ -78,6 +86,11 @@ public class Controller {
         System.out.println(jwt.getPayload().get("password"));
 
         return jwt;
+    }
+
+    record RegisterRequest(String name, String email, ArrayList<Role> roles,
+            String password) {
+
     }
 
     record LoginRequest(String email, String password) {
