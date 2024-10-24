@@ -6,6 +6,7 @@ WORKDIR /app
 
 # Copy the jar file to the container
 COPY /build/libs/dezsysauth.jar /app/dezsysauth.jar
+COPY InitialUsers.json /app/InitialUsers.json
 
 # Expose the port on which the app runs
 EXPOSE 8080
