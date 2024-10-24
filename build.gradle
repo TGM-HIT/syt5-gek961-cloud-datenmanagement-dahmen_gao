@@ -40,3 +40,7 @@ implementation 'org.postgresql:postgresql:42.7.4'
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+bootJar {
+	archiveFileName = 'dezsysauth.jar'  // Optional: customize the name of the jar
+}
