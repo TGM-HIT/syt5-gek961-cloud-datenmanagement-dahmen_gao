@@ -29,14 +29,11 @@ import io.jsonwebtoken.Jwts;
 @RestController
 @RequestMapping("/auth")
 public class Controller {
-    // get key for this running instance
-
     private static final String initialUsersJson = "InitialUsers.json";
     private SecretKey key = Jwts.SIG.HS256.key().build();
     @Autowired
     MyUserRepository repo;
-    public Controller() {
-    }
+
     @PostConstruct
     public void init() {
         File usersJsonFile = new File(initialUsersJson);
