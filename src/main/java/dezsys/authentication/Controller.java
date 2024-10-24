@@ -82,7 +82,8 @@ public class Controller {
     @GetMapping("/verify")
     public String verify(@RequestHeader("Authorization") String token) {
         System.out.println("token: " + token);
-        parseJwt(token);
+        String jwt = token.replace("Bearer: ", "");
+        parseJwt(jwt);
         return "verify";
     }
 
