@@ -18,6 +18,7 @@ public class MyUser {
     public List<Role> roles;
     public String password;
 
+    public MyUser() {}
     public MyUser(Long id, String name, String email, List<Role> roles, String password) {
         this.id = id;
         this.name = name;
