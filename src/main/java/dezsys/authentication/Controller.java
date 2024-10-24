@@ -7,6 +7,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.crypto.SecretKey;
@@ -74,15 +75,25 @@ public class Controller {
     }
 
     @PostMapping("/signin")
-    public String signin(@RequestBody LoginRequest req) {
+    public ResponseEntity<String> signin(@RequestBody LoginRequest req) {
         System.out.println(req.toString());
 
         String email = req.email();
         String password = req.password();
 
-        // TODO check login creds
+        MyUser userEntity = repo.findById(email).orElse(null);
+        if(userEntity == null) {
+            // no user found
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("bad credentials");
+        }
 
-        return createJwt(email, password);
+        // check if passwords match
+        if(!password.equals(userEntity.getPassword())) {
+            // password mismatch
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("bad credentials");
+        }
+
+        return ResponseEntity.ok(createJwt(email, password));
     }
 
     @GetMapping("/verify")

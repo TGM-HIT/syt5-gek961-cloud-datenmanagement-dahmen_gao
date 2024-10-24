@@ -2,37 +2,25 @@ package dezsys.authentication;
 
 import java.util.List;
 
-import jakarta.annotation.Generated;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
 @Entity
 public class MyUser {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    public Long id;
-    public String name;
     public String email;
+    public String name;
     public List<Role> roles;
     public String password;
 
-    public MyUser() {}
-    public MyUser(Long id, String name, String email, List<Role> roles, String password) {
-        this.id = id;
+    public MyUser() {
+    }
+
+    public MyUser(String name, String email, List<Role> roles, String password) {
         this.name = name;
         this.email = email;
         this.roles = roles;
         this.password = password;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getName() {
