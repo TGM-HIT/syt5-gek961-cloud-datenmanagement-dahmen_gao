@@ -1,5 +1,7 @@
 package dezsys.authentication;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -9,6 +11,7 @@ import java.util.stream.Collectors;
 
 import javax.crypto.SecretKey;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,9 +29,27 @@ import io.jsonwebtoken.Jwts;
 @RequestMapping("/auth")
 public class Controller {
     // get key for this running instance
+
+    private static final String initialUsersJson = "initialUsers.json";
     private SecretKey key = Jwts.SIG.HS256.key().build();
+    @Autowired
+    UserRepository repo;
+    public Controller() {
+        File usersJsonFile = new File(initialUsersJson);
+        if (!usersJsonFile.exists()) {
+            throw new RuntimeException("initialUsers.json not found");
+        }
 
-
+        try {
+            // Parse JSON string to User array
+            ObjectMapper objectMapper = new ObjectMapper();
+            User[] users = objectMapper.readValue(usersJsonFile, User[].class);
+            // Save users to the repository
+            repo.saveAll(List.of(users));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     @PostMapping("/admin/register")
     public String register(@RequestBody RegisterRequest req) {
         String name = req.name();
