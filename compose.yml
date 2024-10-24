@@ -4,12 +4,6 @@ services:
   springbootapp:
     build: .
     container_name: springbootapp
-    environment:
-      POSTGRES_HOST: postgresdb  # Ensure service name is used as the host
-      POSTGRES_PORT: 5432
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "8080:8080"
     networks:
