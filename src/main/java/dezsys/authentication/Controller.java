@@ -14,6 +14,8 @@ import javax.crypto.SecretKey;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.SignatureException;
 
 @RestController
 @RequestMapping("/auth")
@@ -86,11 +89,15 @@ public class Controller {
     }
 
     @GetMapping("/verify")
-    public String verify(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<String> verify(@RequestHeader("Authorization") String token) {
         System.out.println("token: " + token);
-        String jwt = token.replace("Bearer: ", "");
-        parseJwt(jwt);
-        return "verify";
+        String jwt = token.replace("Bearer ", "");
+        try {
+            parseJwt(jwt);
+            return ResponseEntity.ok("valid");
+        } catch (SignatureException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("bad jwt");
+        }
     }
 
     public String createJwt(String email, String password) {
