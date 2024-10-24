@@ -9,7 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
 @Entity
-public class User {
+public class MyUser {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     public Long id;
@@ -18,7 +18,7 @@ public class User {
     public List<Role> roles;
     public String password;
 
-    public User(Long id, String name, String email, List<Role> roles, String password) {
+    public MyUser(Long id, String name, String email, List<Role> roles, String password) {
         this.id = id;
         this.name = name;
         this.email = email;

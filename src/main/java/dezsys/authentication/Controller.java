@@ -30,10 +30,10 @@ import io.jsonwebtoken.Jwts;
 public class Controller {
     // get key for this running instance
 
-    private static final String initialUsersJson = "initialUsers.json";
+    private static final String initialUsersJson = "InitialUsers.json";
     private SecretKey key = Jwts.SIG.HS256.key().build();
     @Autowired
-    UserRepository repo;
+    MyUserRepository repo;
     public Controller() {
         File usersJsonFile = new File(initialUsersJson);
         if (!usersJsonFile.exists()) {
@@ -43,7 +43,7 @@ public class Controller {
         try {
             // Parse JSON string to User array
             ObjectMapper objectMapper = new ObjectMapper();
-            User[] users = objectMapper.readValue(usersJsonFile, User[].class);
+            MyUser[] users = objectMapper.readValue(usersJsonFile, MyUser[].class);
             // Save users to the repository
             repo.saveAll(List.of(users));
         } catch (IOException e) {
