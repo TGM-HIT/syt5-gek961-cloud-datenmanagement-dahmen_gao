@@ -1,6 +1,11 @@
 package dezsys.authentication;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -8,7 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class Controller {
 
     @RequestMapping("/admin/register")
-    public String register() {
+    public String register(String name, String email, @RequestParam(value = "roles")ArrayList<Role> roles) {
+        System.out.println(String.format("name: %s, email: %s, roles: %s", name, email,
+                roles.stream().map(Role::name).collect(Collectors.joining(", "))));
         return "register";
     }
 
