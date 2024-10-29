@@ -1,10 +1,12 @@
 package dezsys.authentication;
 
 import java.io.File;
+import org.mindrot.jbcrypt.BCrypt;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -29,12 +31,14 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.SignatureException;
+// import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @RestController
 @RequestMapping("/auth")
 public class Controller {
     private static final String initialUsersJson = "InitialUsers.json";
     private SecretKey key = Jwts.SIG.HS256.key().build();
+    // private static final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     @Autowired
     MyUserRepository repo;
 
@@ -49,6 +53,11 @@ public class Controller {
             // Parse JSON string to User array
             ObjectMapper objectMapper = new ObjectMapper();
             MyUser[] users = objectMapper.readValue(usersJsonFile, MyUser[].class);
+            users = Arrays.stream(users).map((MyUser u) -> {
+                // u.password = passwordEncoder.encode(u.password);
+                u.password = BCrypt.hashpw(u.password, BCrypt.gensalt());
+                return u;
+            }).toArray(MyUser[]::new);
             // Save users to the repository
             repo.saveAll(List.of(users));
         } catch (IOException e) {
@@ -84,12 +93,16 @@ public class Controller {
         MyUser userEntity = repo.findById(email).orElse(null);
         if(userEntity == null) {
             // no user found
+            System.out.println(String.format("no user with email %s found",email));
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("bad credentials");
         }
 
         // check if passwords match
-        if(!password.equals(userEntity.getPassword())) {
+        // if(!password.equals(userEntity.getPassword())) {
+        // if(!passwordEncoder.matches(password, userEntity.getPassword())) {
+        if(!BCrypt.checkpw(password, userEntity.getPassword())) {
             // password mismatch
+            System.out.println(String.format("expected password %s but got %s", userEntity.getPassword(), password));
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("bad credentials");
         }
 
