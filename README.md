@@ -52,7 +52,8 @@ There are 2 scripts:
 `login.sh` asks for email and password and returns JWT on successful login 
 `verify.sh` asks for a JWT as input and verifies it.
 
-The login is currently broken, it always returns a JWT.
+The login is currently broken, because the imported user (from the json file) uses a wrong hashing algorithm 
+that does not match the password hash which gets sent.
 
 #### 3. `/auth/verify`
 
