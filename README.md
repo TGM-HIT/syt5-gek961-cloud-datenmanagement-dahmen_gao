@@ -66,3 +66,15 @@ Hibernate.
 
 Spring Security - Highly customizable authentication and access-control framework for Spring applications.
 
+
+## Extended task: Attack vectors
+
+### 1. Detect Weak or improper passwords
+
+There is no password strength validation.
+
+### 2. Switch to HTTPS
+
+### 3. Rate Limiting (Brute Force Protection)
+
+### 4. Ambiguous Registration and Login
