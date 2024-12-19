@@ -31,7 +31,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.SignatureException;
-// import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @RestController
 @RequestMapping("/auth")
@@ -55,7 +55,8 @@ public class Controller {
             MyUser[] users = objectMapper.readValue(usersJsonFile, MyUser[].class);
             users = Arrays.stream(users).map((MyUser u) -> {
                 // u.password = passwordEncoder.encode(u.password);
-                u.password = BCrypt.hashpw(u.password, BCrypt.gensalt());
+                var salt = BCrypt.gensalt();
+                u.password = BCrypt.hashpw(u.password, salt);
                 return u;
             }).toArray(MyUser[]::new);
             // Save users to the repository
@@ -106,7 +107,9 @@ public class Controller {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("bad credentials");
         }
 
-        return ResponseEntity.ok(createJwt(email, password));
+        var token =createJwt(email, password);
+        System.out.println("success sign in, token: " + token);
+        return ResponseEntity.ok(token);
     }
 
     @GetMapping("/verify")
