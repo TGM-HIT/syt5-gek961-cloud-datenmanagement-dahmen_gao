@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# read -p "Please enter admin email: " adminEmail
+# read -s -p "Please enter admin password: " adminPassword
+
+adminEmail=johndoe@example.com
+adminPassword=securePassword123
+
 # Frage nach der E-Mail (✿◠‿◠)
 read -p "Please enter the new user's email: " email
 
@@ -13,9 +19,6 @@ IFS=',' read -r -a roles <<< "$roles_input"
 # Frage nach dem Passwort (Es wird nicht angezeigt während der Eingabe) ^_^
 read -s -p "Please enter the new user's password: " password
 
-# Frage nach dem Admin-Token (Authentifizierung)
-read -p "Please enter your admin JWT token: " token
-
 # Bereite die JSON-Daten vor, die an den Server gesendet werden
 roles_json="["
 
@@ -26,17 +29,13 @@ done
 # Entferne das letzte Komma
 roles_json="${roles_json%,}]"
 
+
+jwt=$(curl -X POST http://localhost:8080/auth/signin \
+-H "Content-Type: application/json" \
+-d "{\"email\":\"$adminEmail\", \"password\":\"$adminPassword\"}")
+
 # Führe den cURL-Befehl aus und sende die Daten als JSON
-response=$(curl -s -o response.txt -w "%{http_code}" -X POST http://localhost:8080/auth/admin/register \
+curl -X POST http://localhost:8080/auth/admin/register \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $token" \
-  -d "{\"name\":\"$name\", \"email\":\"$email\", \"roles\":$roles_json, \"password\":\"$password\"}")
-
-# Ausgabe der Antwort vom Server
-if [[ "$response" == "200" ]]; then
-  echo "User created successfully!"
-else
-  echo "Failed to create user. Response: $response"
-  cat response.txt
-fi
-
+  -H "Authorization: Bearer $jwt" \
+  -d "{\"name\":\"$name\", \"email\":\"$email\", \"roles\":$roles_json, \"password\":\"$password\"}"

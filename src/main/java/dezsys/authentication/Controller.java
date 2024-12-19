@@ -31,7 +31,6 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.SignatureException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @RestController
 @RequestMapping("/auth")
@@ -96,10 +95,13 @@ public class Controller {
             System.out.println(String.format("name: %s, email: %s, roles: %s", name, email,
                     roles.stream().map(Role::name).collect(Collectors.joining(", "))));
 
+            System.out.println("creating user " + name);
+
             var saltedHash = BCrypt.hashpw(password, BCrypt.gensalt());
             MyUser newEntity = new MyUser(email, name, roles, saltedHash);
             repo.save(newEntity);
 
+            System.out.println("created user " + name);
             return ResponseEntity.ok("created user " + name);
         } catch (SignatureException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("bad jwt");
