@@ -73,6 +73,11 @@ public class Controller {
         var roles = req.roles();
         String password = req.password();
 
+        // check password strength
+        if(!isPasswordStrong(password)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("bad password strength");
+        }
+
         // check if the token is valid and belongs to an admin
         String jwt = token.replace("Bearer ", "");
         try {
@@ -170,6 +175,25 @@ public class Controller {
         System.out.println(jwt.getPayload().get("password"));
 
         return jwt;
+    }
+
+    public static boolean isPasswordStrong(String password) {
+        // Minimum length: 8 characters
+        if (password.length() < 8) {
+            return false;
+        }
+
+        // Regular expressions for different criteria
+        String upperCasePattern = ".*[A-Z].*"; // At least one uppercase letter
+        String lowerCasePattern = ".*[a-z].*"; // At least one lowercase letter
+        String digitPattern = ".*\\d.*";       // At least one digit
+        String specialCharPattern = ".*[!@#$%^&*(),.?\":{}|<>].*"; // At least one special character
+
+        // Validate all criteria
+        return password.matches(upperCasePattern) &&
+               password.matches(lowerCasePattern) &&
+               password.matches(digitPattern) &&
+               password.matches(specialCharPattern);
     }
 
     record RegisterRequest(String name, String email, ArrayList<Role> roles,

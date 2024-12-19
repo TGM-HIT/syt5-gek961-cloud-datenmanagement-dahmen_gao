@@ -71,7 +71,12 @@ Spring Security - Highly customizable authentication and access-control framewor
 
 ### 1. Detect Weak or improper passwords
 
-There is no password strength validation.
+There was no password strength validation.
+This was fixed by ensuring that for registering, each password is at least 8 characters long and contains
+- lowercase letters
+- uppercase letters
+- digits
+- special characters
 
 ### 2. Switch to HTTPS
 
