@@ -68,20 +68,43 @@ public class Controller {
 
 
     @PostMapping("/admin/register")
-    public String register(@RequestBody RegisterRequest req) {
+    public ResponseEntity<String> register(@RequestBody RegisterRequest req, @RequestHeader("Authorization") String token) {
         String name = req.name();
         String email = req.email();
         var roles = req.roles();
         String password = req.password();
 
-        System.out.println(String.format("name: %s, email: %s, roles: %s", name, email,
-                roles.stream().map(Role::name).collect(Collectors.joining(", "))));
+        // check if the token is valid and belongs to an admin
+        String jwt = token.replace("Bearer ", "");
+        try {
+            var jws = parseJwt(jwt);
+            String jwtEmail = (String)jws.getPayload().get("id");
 
-        // TODO check if roles include ADMIn
+            // check if token belongs to admin
+            MyUser userEntity = repo.findById(jwtEmail).orElse(null);
+            if(userEntity == null) {
+                // no user found
+                System.out.println(String.format("no user with email %s found",email));
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("bad credentials");
+            }
+            if(!userEntity.roles.contains(Role.ADMIN)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("no admin :c");
+            }
 
-        // TODO create user
+            // user gets created
 
-        return createJwt(email, password);
+            System.out.println(String.format("name: %s, email: %s, roles: %s", name, email,
+                    roles.stream().map(Role::name).collect(Collectors.joining(", "))));
+
+            var saltedHash = BCrypt.hashpw(password, BCrypt.gensalt());
+            MyUser newEntity = new MyUser(email, name, roles, saltedHash);
+            repo.save(newEntity);
+
+            return ResponseEntity.ok("created user " + name);
+        } catch (SignatureException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("bad jwt");
+        }
+
     }
 
     @PostMapping("/signin")
