@@ -95,19 +95,29 @@ public class Controller {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body("no admin :c");
             }
 
-            // user gets created
+            boolean success = true;
 
+            // check if user already exists
+            MyUser existingUser = repo.findById(email).orElse(null);
+            if(existingUser != null) {
+                System.out.println("user already exists! returning generic response");
+                success = false;
+            }
+
+            // user gets created
             System.out.println(String.format("name: %s, email: %s, roles: %s", name, email,
                     roles.stream().map(Role::name).collect(Collectors.joining(", "))));
 
             System.out.println("creating user " + name);
 
             var saltedHash = BCrypt.hashpw(password, BCrypt.gensalt());
-            MyUser newEntity = new MyUser(email, name, roles, saltedHash);
-            repo.save(newEntity);
+            if(success) {
+                MyUser newEntity = new MyUser(email, name, roles, saltedHash);
+                repo.save(newEntity);
+                System.out.println("created user " + name);
+            }
 
-            System.out.println("created user " + name);
-            return ResponseEntity.ok("created user " + name);
+            return ResponseEntity.ok("registration pending");
         } catch (SignatureException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("bad jwt");
         }
@@ -121,19 +131,25 @@ public class Controller {
         String email = req.email();
         String password = req.password();
 
+        boolean success = true;
+
         MyUser userEntity = repo.findById(email).orElse(null);
         if(userEntity == null) {
             // no user found
             System.out.println(String.format("no user with email %s found",email));
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("bad credentials");
+            success = false;
         }
 
         // check if passwords match
         // if(!password.equals(userEntity.getPassword())) {
         // if(!passwordEncoder.matches(password, userEntity.getPassword())) {
-        if(!BCrypt.checkpw(password, userEntity.getPassword())) {
+        if(userEntity != null && !BCrypt.checkpw(password, userEntity.getPassword())) {
             // password mismatch
             System.out.println(String.format("expected password %s but got %s", userEntity.getPassword(), password));
+            success = false;
+        }
+
+        if(!success) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("bad credentials");
         }
 
