@@ -93,7 +93,13 @@ cd nginx/certs # Switch into cert directory
 ./genkey.sh     # Execute the genkey script that generates a cert with openssl
 ```
 
-### 3. Rate Limiting (Brute Force Protection)
+### 3. Password hashing
+
+Passwords should be stored as a salted hash in the database.
+The hash is to prevent user passwords from getting leaked on data breaches, 
+and salting is to prevent rainbow table attacks.
+This is an attack where procompiled hashes are used to quickly check breached databases, 
+to find out plain-text passwords.
 
 ### 4. Ambiguous Registration and Login
 
