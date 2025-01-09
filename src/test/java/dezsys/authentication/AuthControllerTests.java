@@ -72,6 +72,17 @@ public class AuthControllerTests {
     }
 
     @Test
+    public void testAdminRegister_withInsecurePassword_shouldFail() throws Exception {
+        String body = createRequestBody("johndoe2@example.com", "uwu");
+        mockMvc.perform(post("/auth/admin/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", adminJwt)
+                .content(body))
+                .andExpect(status().isForbidden())
+                .andExpect(content().string("bad password strength"));
+    }
+
+    @Test
     public void testAdminRegister_withInvalidJwt_shouldFail() throws Exception {
         String requestBody = createRequestBody("johndoe2@example.com", "aoeuhtnsHTNS123!!");
 
