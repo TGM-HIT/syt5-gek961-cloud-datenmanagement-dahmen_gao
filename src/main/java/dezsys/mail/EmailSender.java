@@ -22,6 +22,9 @@ public class EmailSender {
         mailSender.setUsername(username);
         mailSender.setPassword(password);
 
+        this.mailSender = mailSender;
+
+
         if(tls) {
             Properties props = mailSender.getJavaMailProperties();
             props.put("mail.transport.protocol", "smtp");
