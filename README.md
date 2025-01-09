@@ -83,3 +83,12 @@ This was fixed by ensuring that for registering, each password is at least 8 cha
 ### 3. Rate Limiting (Brute Force Protection)
 
 ### 4. Ambiguous Registration and Login
+
+A malicious user could enter an email of another person, and find out if they have an account, by inspecting 
+the error message or success.
+
+To prevent this, the registration should never show messages like 'user already exists' (for registering),
+or 'wrong password' (for login); but rather show 'registration pending' or 'wrong username or password'.
+
+Also, the response should take the same amount of time, regardless of whether an user exists with the specific email.
+This is done to counter an attacker being able to extract information from the time it takes to get the response.
