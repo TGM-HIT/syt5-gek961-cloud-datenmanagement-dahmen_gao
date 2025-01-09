@@ -1,15 +1,29 @@
-version: '3.8'
-
 services:
-  springbootapp:
+  springboot-app:
     build: .
-    container_name: springbootapp
+    image: cloud-datenmanagement-dahgao
+    expose:
+      - "8080"
+    networks:
+      - proxy
+    restart: unless-stopped
+
+  nginx:
+    image: docker.io/nginxproxy/nginx-proxy:alpine
+    container_name: nginx-proxy
     ports:
       - "8080:8080"
+      - "8443:8443"
+    volumes:
+      - ./nginx/certs:/etc/nginx/certs # Mount certs directory
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/spring.conf # Custom Nginx config
+      - /var/run/docker.sock:/tmp/docker.sock:ro
     networks:
-      - app-network
+      - proxy
+    depends_on:
+      - springboot-app
+    restart: unless-stopped
 
 networks:
-  app-network:
-
-
+  proxy:
+    driver: bridge
