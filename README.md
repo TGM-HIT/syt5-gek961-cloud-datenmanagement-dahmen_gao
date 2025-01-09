@@ -83,6 +83,9 @@ This was fixed by ensuring that for registering, each password is at least 8 cha
 
 ### 2. Switch to HTTPS
 
+Without encryption, an attacker could get valuable information when sniffing out the http traffic of
+the API. So to approach this problem we implemented a simple reverse proxy that accepts https connections and forwards traffic to the spring-boot applcation.
+
 To include ssl/tls encryption for the login endpoints the `compose.yml` includes a nginx reverse proxy that uses a self-signed certificicate
 to encrypt traffic, NOTE: The traffic between the reverse proxy and the spring-boot application is not encrypted, but it uses the internal docker network
 that is separated.
@@ -111,3 +114,7 @@ or 'wrong password' (for login); but rather show 'registration pending' or 'wron
 
 Also, the response should take the same amount of time, regardless of whether an user exists with the specific email.
 This is done to counter an attacker being able to extract information from the time it takes to get the response.
+
+### 5. Email confirmation
+
+To ensure that accounts only are registered when an Email Server or Account exists, a confirmation email with a code gets sent out when registering. This code expires in 2 minutes and the code must be sent out on the API to confirm account creation.
