@@ -111,3 +111,8 @@ or 'wrong password' (for login); but rather show 'registration pending' or 'wron
 
 Also, the response should take the same amount of time, regardless of whether an user exists with the specific email.
 This is done to counter an attacker being able to extract information from the time it takes to get the response.
+
+### 5. Email confirmation
+
+To ensure that accounts only are registered when an account exists a confirmation email with
+a code in sent out.
