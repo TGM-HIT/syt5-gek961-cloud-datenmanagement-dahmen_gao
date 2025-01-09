@@ -17,6 +17,6 @@ read -s -p "Please enter your password: " password
 # ")
 
 # Führe den cURL-Befehl aus und sende die verschlüsselte E-Mail und Passwort als JSON (๑˃̵ᴗ˂̵)و
-curl -X POST http://localhost:8080/auth/signin \
+curl -X POST -L -k http://localhost:8080/auth/signin \
 -H "Content-Type: application/json" \
 -d "{\"email\":\"$email\", \"password\":\"$password\"}"
