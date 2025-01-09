@@ -38,3 +38,8 @@ out/
 
 .env
 .venv
+
+
+### HTTPS ###
+/nginx/certs/nginx.key
+/nginx/certs/nginx.crt

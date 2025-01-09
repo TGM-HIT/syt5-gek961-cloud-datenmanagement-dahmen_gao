@@ -14,9 +14,12 @@ It uses JWT as a session token to authenticate users.
 To deploy: 
 
 ```bash
+cd nginx/certs  # Switch into cert directory
+./genkey.sh     # Execute the genkey script that generates a cert with openssl
+
+cd ..
 docker compose up
 ```
-
 
 ## API Documentation
 
@@ -65,4 +68,20 @@ Spring Data JPA - Persist data in SQL stores with Java Persistence API using Spr
 Hibernate.
 
 Spring Security - Highly customizable authentication and access-control framework for Spring applications.
+
+
+### Security Measures
+
+## 1. HTTPS
+
+To include ssl/tls encryption for the login endpoints the `compose.yml` includes a nginx reverse proxy that uses a self-signed certificicate
+to encrypt traffic, NOTE: The traffic between the reverse proxy and the spring-boot application is not encrypted, but it uses the internal docker network
+that is separated.
+
+Before deploying the application you have to generate the self-signed certificate, just do:
+```console
+cd nginx/certs # Switch into cert directory
+./genkey.sh     # Execute the genkey script that generates a cert with openssl
+```
+
 
