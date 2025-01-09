@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -16,6 +17,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.io.File;
+import java.util.List;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -35,18 +37,13 @@ public class AuthControllerTests {
     public void retrieveAdminJwt() throws Exception {
         ObjectMapper objectMapper = new ObjectMapper();
         MyUser[] users = objectMapper.readValue(new File("InitialUsers.json"), MyUser[].class);
-        
+
         assertTrue(users.length >= 1, "InitialUsers.json has no users");
         assertTrue(users[0].roles.contains(Role.ADMIN), "initial user is no admin");
 
         adminUser = users[0];
 
-        String requestBody = String.format("""
-                {
-                    \"email\": \"%s\",
-                    \"password\": \"%s\"
-                }
-                """, users[0].email, users[0].password);
+        String requestBody = createRequestBody(adminUser.email, adminUser.password);
 
         String response = mockMvc.perform(post("/auth/signin")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -65,33 +62,18 @@ public class AuthControllerTests {
 
     @Test
     public void testAdminRegister_withValidJwt_shouldSucceed() throws Exception {
-        String requestBody = """
-                {
-                    \"name\": \"John Doe\",
-                    \"email\": \"johndoe2@example.com\",
-                    \"roles\": [\"ADMIN\", \"READER\"],
-                    \"password\": \"securePassword123!!\"
-                }
-                """;
-
+        String body = createRequestBody("johndoe2@example.com", "aoeuhtnsHTNS123!!");
         mockMvc.perform(post("/auth/admin/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("Authorization", adminJwt)
-                .content(requestBody))
+                .content(body))
                 .andExpect(status().isOk())
                 .andExpect(content().string("registration pending"));
     }
 
     @Test
     public void testAdminRegister_withInvalidJwt_shouldFail() throws Exception {
-        String requestBody = """
-                {
-                    \"name\": \"John Doe\",
-                    \"email\": \"john.doe@example.com\",
-                    \"roles\": [\"ADMIN\", \"READER\"],
-                    \"password\": \"securePassword123\"
-                }
-                """;
+        String requestBody = createRequestBody("johndoe2@example.com", "aoeuhtnsHTNS123!!");
 
         mockMvc.perform(post("/auth/admin/register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -102,13 +84,8 @@ public class AuthControllerTests {
 
     @Test
     public void testSignin_withValidCredentials_shouldReturnJwt() throws Exception {
-        String requestBody = String.format("""
-                {
-                    \"email\": \"%s\",
-                    \"password\": \"%s\"
-                }
-                """, adminUser.email, adminUser.password);
 
+        String requestBody = createRequestBody(adminUser.email, adminUser.password);
 
         mockMvc.perform(post("/auth/signin")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -118,12 +95,7 @@ public class AuthControllerTests {
 
     @Test
     public void testSignin_withInvalidCredentials_shouldFail() throws Exception {
-        String requestBody = """
-                {
-                    \"email\": \"john.doe@example.com\",
-                    \"password\": \"wrongPassword\"
-                }
-                """;
+        String requestBody = createRequestBody(adminUser.email, adminUser.password + "uwu");
 
         mockMvc.perform(post("/auth/signin")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -143,6 +115,12 @@ public class AuthControllerTests {
         mockMvc.perform(get("/auth/verify")
                 .header("Authorization", INVALID_JWT))
                 .andExpect(status().isForbidden());
+    }
+
+    private String createRequestBody(String email, String password) throws JsonProcessingException {
+        ObjectMapper om = new ObjectMapper();
+        MyUser user = new MyUser(email, "John Doe", List.of(Role.ADMIN), password);
+        return om.writeValueAsString(user);
     }
 
 }
