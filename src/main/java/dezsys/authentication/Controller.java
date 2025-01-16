@@ -31,6 +31,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.SignatureException;
+import io.jsonwebtoken.MalformedJwtException;
 
 @RestController
 @RequestMapping("/auth")
@@ -165,7 +166,7 @@ public class Controller {
         try {
             parseJwt(jwt);
             return ResponseEntity.ok("valid");
-        } catch (SignatureException e) {
+        } catch (SignatureException | MalformedJwtException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("bad jwt");
         }
     }

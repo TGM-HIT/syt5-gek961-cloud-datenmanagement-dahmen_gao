@@ -105,7 +105,16 @@ public class AuthControllerTests {
     }
 
     @Test
-    public void testSignin_withInvalidCredentials_shouldFail() throws Exception {
+    public void testSignin_withInvalidEmail_shouldFail() throws Exception {
+        String requestBody = createRequestBody(adminUser.email + "uwu", adminUser.password);
+
+        mockMvc.perform(post("/auth/signin")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+                .andExpect(status().isForbidden());
+    }
+    @Test
+    public void testSignin_withInvalidPassword_shouldFail() throws Exception {
         String requestBody = createRequestBody(adminUser.email, adminUser.password + "uwu");
 
         mockMvc.perform(post("/auth/signin")
@@ -114,6 +123,16 @@ public class AuthControllerTests {
                 .andExpect(status().isForbidden());
     }
 
+
+    @Test
+    public void testSignin_withInvalidCredentials_shouldFail() throws Exception {
+        String requestBody = createRequestBody(adminUser.email + "uwu", adminUser.password + "uwu");
+
+        mockMvc.perform(post("/auth/signin")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+                .andExpect(status().isForbidden());
+    }
     @Test
     public void testVerify_withValidJwt_shouldSucceed() throws Exception {
         mockMvc.perform(get("/auth/verify")
@@ -125,6 +144,13 @@ public class AuthControllerTests {
     public void testVerify_withInvalidJwt_shouldFail() throws Exception {
         mockMvc.perform(get("/auth/verify")
                 .header("Authorization", INVALID_JWT))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testVerify_withMalformedJwt_shouldFail() throws Exception {
+        mockMvc.perform(get("/auth/verify")
+                .header("Authorization", "uwu"))
                 .andExpect(status().isForbidden());
     }
 
