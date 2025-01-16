@@ -114,5 +114,4 @@ This is done to counter an attacker being able to extract information from the t
 
 ### 5. Email confirmation
 
-To ensure that accounts only are registered when an account exists a confirmation email with
-a code in sent out.
+To ensure that accounts only are registered when an Email Server or Account exists, a confirmation email with a code gets sent out when registering. This code expires in 2 minutes and the code must be sent out on the API to confirm account creation.

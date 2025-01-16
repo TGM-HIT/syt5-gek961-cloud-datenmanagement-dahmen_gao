@@ -29,13 +29,12 @@ done
 # Entferne das letzte Komma
 roles_json="${roles_json%,}]"
 
-
 jwt=$(curl -X POST http://localhost:8080/auth/signin \
 -H "Content-Type: application/json" \
 -d "{\"email\":\"$adminEmail\", \"password\":\"$adminPassword\"}")
 
 # Führe den cURL-Befehl aus und sende die Daten als JSON
-curl -X POST https://localhost:8443/auth/admin/register \
+curl -k -X POST https://localhost:8443/auth/admin/register \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $jwt" \
   -d "{\"name\":\"$name\", \"email\":\"$email\", \"roles\":$roles_json, \"password\":\"$password\"}"

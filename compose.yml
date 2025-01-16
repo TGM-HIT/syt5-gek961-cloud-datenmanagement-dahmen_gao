@@ -1,6 +1,7 @@
 services:
   springboot-app:
     build: .
+    env_file: ".env"
     image: cloud-datenmanagement-dahgao
     expose:
       - "8080"
