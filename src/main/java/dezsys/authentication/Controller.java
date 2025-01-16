@@ -4,22 +4,31 @@ import java.io.File;
 import org.mindrot.jbcrypt.BCrypt;
 import java.io.IOException;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.crypto.SecretKey;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import dezsys.mail.EmailSender;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -42,8 +51,20 @@ public class Controller {
     @Autowired
     MyUserRepository repo;
 
+    private ConcurrentHashMap<String, MyUser> pendingRegistrations = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, String> emailToId = new ConcurrentHashMap<>();
+    private final java.util.concurrent.ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+    private String host;
+    private boolean isHttps;
+
+    private EmailSender emailSender;
+
     @PostConstruct
     public void init() {
+        this.host = System.getenv("HOST");
+        this.isHttps = System.getenv("IS_HTTPS").equals("true");
+
         File usersJsonFile = new File(initialUsersJson);
         if (!usersJsonFile.exists()) {
             throw new RuntimeException("InitialUsers.json not found");
@@ -64,8 +85,26 @@ public class Controller {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        this.emailSender = new EmailSender("smtp.gmail.com", 587, System.getenv("EMAIL_USERNAME"), System.getenv("EMAIL_PASSWORD"), true);
     }
 
+    @GetMapping("/register/verify/{verifyId}")
+    public ResponseEntity<String> verifyRegister(@PathVariable String verifyId) {
+        //  only allow creating ones that havent been scheduled
+        MyUser newEntity = this.pendingRegistrations.get(verifyId);
+        this.pendingRegistrations.remove(verifyId);
+        String correctId = this.emailToId.get(newEntity.email);
+
+        if(newEntity == null || !correctId.equals(verifyId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("invalid id");
+        }
+
+        this.emailToId.remove(newEntity.email);
+        repo.save(newEntity);
+        System.out.println("created user " + newEntity.name);
+        return ResponseEntity.ok("created user");
+    }
 
     @PostMapping("/admin/register")
     public ResponseEntity<String> register(@RequestBody RegisterRequest req, @RequestHeader("Authorization") String token) {
@@ -113,9 +152,30 @@ public class Controller {
 
             var saltedHash = BCrypt.hashpw(password, BCrypt.gensalt());
             if(success) {
+                String registrationToken = UUID.randomUUID().toString();
                 MyUser newEntity = new MyUser(email, name, roles, saltedHash);
-                repo.save(newEntity);
-                System.out.println("created user " + name);
+                this.pendingRegistrations.put(registrationToken, newEntity);
+                this.emailToId.put(email, registrationToken);
+                scheduler.schedule(() -> {
+                    this.pendingRegistrations.remove(registrationToken);
+                    synchronized(this) {
+                        String mappedToken = this.emailToId.getOrDefault(email, "");
+                        if(mappedToken.equals(registrationToken)) {
+                            this.emailToId.remove(email);
+                        }
+                    }
+                    System.out.println("removed " + registrationToken + " for email " + email);
+                }, 1, TimeUnit.MINUTES);
+                String subject = "verify account " + name;
+                String content = "click on " + (this.isHttps ? "https" : "http") + String.format("://%s/auth/register/verify/%s", this.host, registrationToken);
+                try {
+                    this.emailSender.sendEmail("spring dezsys application", System.getenv("EMAIL_USERNAME"), email, subject, content);
+                }
+                catch(Exception ex) {
+                    System.err.println("failed sending email");
+                    ex.printStackTrace();
+                }
+                System.out.println("path /auth/register/verify/" + registrationToken);
             }
 
             return ResponseEntity.ok("registration pending");
